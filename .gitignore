@@ -1,0 +1,25 @@
+# .gitignore
+
+# 1. Virtual Environment
+# This folder contains all the installed Python libraries and is specific
+# to your operating system. It should never be committed.
+venv/
+
+# 2. Python Caches
+# Python generates these folders to store compiled bytecode for speed.
+# They are automatically created and not part of your source code.
+__pycache__/
+*.pyc
+
+# 3. IDE and Editor Configuration
+# These folders are created by code editors to store your personal
+# project settings. Each developer will have their own.
+.idea/
+.vscode/
+
+# 4. Log Files
+# If your application generates log files, they should be ignored
+# as they are runtime artifacts, not source code.
+*.log
+.env
+Future

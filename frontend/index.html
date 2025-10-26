@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULANC vs Normal ABR Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .top-bar {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            border-bottom: 1px solid #2a2a2a;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .status-item .label {
+            color: #888;
+        }
+
+        .status-value {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .speed-value {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #000;
+        }
+
+        .quality-high { 
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            color: #000;
+        }
+        .quality-medium { 
+            background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%);
+            color: #000;
+        }
+        .quality-low { 
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: #fff;
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .stream-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #151515;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stream-panel:hover {
+            border-color: #3a3a3a;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+        }
+
+        .stream-panel.left {
+            border-left: 3px solid #00d4ff;
+        }
+
+        .stream-panel.right {
+            border-left: 3px solid #ff4444;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #1f1f1f 0%, #151515 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .panel-title .icon {
+            font-size: 1.3em;
+        }
+
+        .left .panel-title {
+            color: #00d4ff;
+        }
+
+        .right .panel-title {
+            color: #ff4444;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-adaptive {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #000;
+        }
+
+        .badge-standard {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: #fff;
+        }
+
+        .video-container {
+            flex: 1;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(0,212,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .stream-panel.right .video-container::before {
+            background: radial-gradient(circle at center, rgba(255,68,68,0.1) 0%, transparent 70%);
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .video-placeholder {
+            color: #444;
+            font-size: 1.1em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .video-placeholder-icon {
+            font-size: 3em;
+            opacity: 0.3;
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #151515;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        .status-connected {
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0,255,136,0.5);
+        }
+
+        .status-disconnected {
+            background: #ff4444;
+            box-shadow: 0 0 10px rgba(255,68,68,0.5);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 60px);
+            }
+            
+            .stream-panel {
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+            
+            .status-info {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+            
+            .main-container {
+                padding: 10px;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">⚡ ULANC Streaming Platform</div>
+        <div class="status-info">
+            <div class="status-item">
+                <span class="label">Internet Speed:</span>
+                <span class="status-value speed-value" id="speed">N/A</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Quality:</span>
+                <span class="status-value" id="quality">HIGH</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="stream-panel left">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="icon">✨</span>
+                    <span>ULANC Adaptive Stream</span>
+                </div>
+                <div class="badge badge-adaptive">Adaptive</div>
+            </div>
+            <div class="video-container">
+                <img id="ulanc_stream" src="" alt="ULANC Stream">
+                <div class="video-placeholder" id="ulanc_placeholder">
+                    <div class="video-placeholder-icon">📹</div>
+                    <div>Waiting for stream...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stream-panel right">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="icon">📺</span>
+                    <span>Standard ABR Stream</span>
+                </div>
+                <div class="badge badge-standard">Standard</div>
+            </div>
+            <div class="video-container">
+                <img id="normal_stream" src="" alt="Normal Stream">
+                <div class="video-placeholder" id="normal_placeholder">
+                    <div class="video-placeholder-icon">📹</div>
+                    <div>Waiting for stream...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="connection-status">
+        <span class="status-indicator status-disconnected" id="status-indicator"></span>
+        <span id="connection-text">Connecting...</span>
+    </div>
+
+    <script>
+        const ulancImg = document.getElementById('ulanc_stream');
+        const normalImg = document.getElementById('normal_stream');
+        const ulancPlaceholder = document.getElementById('ulanc_placeholder');
+        const normalPlaceholder = document.getElementById('normal_placeholder');
+        const speedEl = document.getElementById('speed');
+        const qualityEl = document.getElementById('quality');
+        const statusIndicator = document.getElementById('status-indicator');
+        const connectionText = document.getElementById('connection-text');
+
+        let wsUlanC = null;
+        let wsNormal = null;
+        let connectedCount = 0;
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+
+        function updateConnectionStatus() {
+            if (connectedCount === 2) {
+                statusIndicator.className = 'status-indicator status-connected';
+                connectionText.textContent = 'Connected';
+            } else if (connectedCount === 1) {
+                statusIndicator.className = 'status-indicator status-connected';
+                connectionText.textContent = 'Partial Connection';
+            } else {
+                statusIndicator.className = 'status-indicator status-disconnected';
+                connectionText.textContent = 'Disconnected';
+            }
+        }
+
+        function setupWebSocket(streamType, imgElement, placeholderElement) {
+            const wsUrl = `${wsProtocol}${window.location.host}/ws/${streamType}`;
+            console.log(`Connecting to ${wsUrl}`);
+            const ws = new WebSocket(wsUrl);
+            ws.binaryType = 'blob';
+
+            ws.onopen = () => {
+                console.log(`${streamType} WebSocket connected`);
+                connectedCount++;
+                updateConnectionStatus();
+                if (streamType === 'ulanc') wsUlanC = ws;
+                if (streamType === 'normal') wsNormal = ws;
+                placeholderElement.style.display = 'none';
+            };
+
+            ws.onmessage = (event) => {
+                if (imgElement.src) {
+                    URL.revokeObjectURL(imgElement.src);
+                }
+                const url = URL.createObjectURL(event.data);
+                imgElement.src = url;
+                placeholderElement.style.display = 'none';
+            };
+
+            ws.onerror = (error) => {
+                console.error(`${streamType} WebSocket Error:`, error);
+            };
+
+            ws.onclose = () => {
+                console.log(`${streamType} WebSocket disconnected. Reconnecting in 3 seconds...`);
+                imgElement.src = "";
+                placeholderElement.style.display = 'flex';
+                connectedCount--;
+                updateConnectionStatus();
+                if (streamType === 'ulanc') wsUlanC = null;
+                if (streamType === 'normal') wsNormal = null;
+                setTimeout(() => setupWebSocket(streamType, imgElement, placeholderElement), 3000);
+            };
+        }
+
+        function pollStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    speedEl.textContent = data.upload_speed + ' Mbps';
+                    const quality = data.quality_level.toLowerCase();
+                    qualityEl.textContent = quality.toUpperCase();
+                    qualityEl.className = `status-value quality-${quality}`;
+                })
+                .catch(error => console.error('Error fetching status:', error));
+        }
+
+        setupWebSocket('ulanc', ulancImg, ulancPlaceholder);
+        setupWebSocket('normal', normalImg, normalPlaceholder);
+
+        setInterval(pollStatus, 5000);
+        pollStatus();
+    </script>
+</body>
+</html>
